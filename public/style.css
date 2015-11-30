@@ -1,0 +1,16 @@
+.myHome{
+	color: white; 
+	text-shadow: 1px 1px 1px #000;
+}
+
+.panel-body{
+	background:#B2C2B9;
+}
+.box {
+  margin-top: 80px;
+  background:rgba(255,255,255,0.3);
+  border-radius: 25px;
+}
+.myRow{
+	margin-top: 60px;
+}

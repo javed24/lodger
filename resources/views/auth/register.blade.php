@@ -1,8 +1,18 @@
 @extends('layouts.master')
 
+@section('style')
+    body { background-image: url('img/vill-2.jpg');
+			-webkit-background-size: cover;
+  			-moz-background-size: cover;
+  			-o-background-size: cover;
+  			background-size: cover;
+     }
+@stop
+
 
 @section('content')
-	
+
+
 		<div class="row">
 			<div class="col-md-6 col-md-offset-3">
 				<h1>Sign Up</h1>

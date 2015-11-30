@@ -8,6 +8,9 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use Session;
 use App\Task;
+use App\User;
+use Auth;
+use DB;
 
 class TasksController extends Controller
 {
@@ -29,6 +32,7 @@ class TasksController extends Controller
         //
         $tasks = Task::all();
         return view('tasks.index')->withTasks($tasks);
+       //eturn $tasks->all();
     }
 
     /**
@@ -55,13 +59,18 @@ class TasksController extends Controller
             'description' => 'required'
         ]);
 
-      $input = $request->all();
+       // return $request->all();
+        $input = $request->all();
 
-      Task::create($input);   
+        $user = Auth::user();
+        
+        $user->tasks()->create($input);
+        //dd($input["title"]);
+        //Task::create($input);   
 
-      Session::flash('flash_message', 'Task Added!');
+        Session::flash('flash_message', 'Task Added!');
 
-      return redirect()->back();
+        return redirect()->back();
     }
 
     /**
@@ -88,6 +97,8 @@ class TasksController extends Controller
         $task = Task::findOrFail($id);
 
         return view('tasks.edit')->withTask($task);
+
+       // return $task;
     }
 
     /**
@@ -133,4 +144,68 @@ class TasksController extends Controller
 
         return redirect()->route('tasks.index');    
     }
-}
+
+    public function search(Request $request){
+      return view('tasks.search');
+      // echo "asdasd";
+
+     // $input = $request->all(); //doesn't work
+     // Task::create($input);
+     // dd($input); //doesn't work
+    }
+    public function showSearch(Request $request){
+        $this->validate($request, [
+            'search' => 'required',
+        ]);
+
+
+      $input = $request->all();
+      //dd($input);
+      $term = $input["search"];
+      $tasks = Task::search("select city from tasks where city = %{$term}%")
+      ->with('user')
+      ->get();
+    //    dd($tasks);
+    return view('tasks.results')->with(['tasks' => $tasks]);
+    }
+
+    public function userprofile(Request $request){
+        $userID = Auth::user()->id;
+        //$userPosts = DB::select('select title from tasks inner join users on users.id = tasks.user_id ORDER BY tasks.created_at');
+        $userPosts = DB::select('select title from tasks where tasks.user_id=:ta', ['ta'=>$userID]);         
+        //dd($userPosts);
+        return view('tasks.userprofile')->with(['posts' => $userPosts]);
+       //return "asi";
+    }
+
+
+
+    //function for recommendation
+    public function upvoted($postID, Request $request){
+       $upvote=DB::select('select upvote from tasks where id= :up', ['up'=>urldecode($postID)]);
+       $val=1;
+       foreach ($upvote as $key ) {
+           $val=$val+$key->upvote;
+       }
+
+       $afterVote = DB::update('update tasks set upvote = :vote where id = :up', ['vote'=>$val,'up'=>urldecode($postID)]);
+
+        return redirect()->back();  
+    }
+
+    //function for dislikes
+    public function downvoted($postID, Request $request){
+       $downvote=DB::select('select downvote from tasks where id= :down', ['down'=>urldecode($postID)]);
+       $val=1;
+       foreach ($downvote as $key ) {
+           $val=$val+$key->downvote;
+       }
+
+       $afterVote = DB::update('update tasks set downvote = :vote where id = :down', ['vote'=>$val,'down'=>urldecode($postID)]);
+
+        return redirect()->back();  
+    }
+
+
+
+} //end of class
